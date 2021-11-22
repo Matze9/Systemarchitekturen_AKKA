@@ -29,6 +29,13 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
         }
     }
 
+    public static final class ConsumeProduct implements FridgeCommand {
+        private Product product;
+        public ConsumeProduct(Product product){
+            this.product = product;
+        }
+    }
+
     public static Behavior<FridgeCommand> create (ActorRef<Fridge.FridgeCommand> fridge, String groupId, String deviceId){
         return Behaviors.setup(context -> new Fridge(context, fridge, groupId, deviceId));
     }
@@ -52,8 +59,12 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
 
     @Override
     public Receive<FridgeCommand> createReceive() {
-        return newReceiveBuilder().onMessage(AddProduct.class, this::onAddProduct).onSignal(PostStop.class, signal -> onPostStop()).build();
+        return newReceiveBuilder().onMessage(AddProduct.class, this::onAddProduct).onMessage(ConsumeProduct.class, this::onProductConsumption).onSignal(PostStop.class, signal -> onPostStop()).build();
     }
+
+
+
+
 
 
 
@@ -69,6 +80,16 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
 
         getContext().getLog().info("All items in your fridge: ");
         stock.getAllProducts().forEach(product -> getContext().getLog().info(product.getProductName()));
+        return this;
+    }
+
+    private Behavior<FridgeCommand> onProductConsumption(ConsumeProduct c){
+        if(stock.getAllProducts().contains(c.product)){
+           stock.removeProduct(c.product);
+           getContext().getLog().info("Sucessfully removed " + c.product.getProductName(), c.product.getProductName());
+        }else{
+            getContext().getLog().info("You tried to remove a product which seems to be not in the fridge...");
+       }
         return this;
     }
 

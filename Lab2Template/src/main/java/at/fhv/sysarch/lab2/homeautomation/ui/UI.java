@@ -73,24 +73,37 @@ public class UI extends AbstractBehavior<Void> {
                 this.airCondition.tell(new AirCondition.PowerAirCondition(Optional.of(Boolean.valueOf(command[1]))));
             }
             if(command[0].equals("f")){
+                Product p = null;
 
-                Product p = new Product() {
-                };
                 if(command[1].equals("a")){
-                    p = new Butter();
-                }
-                if(command[1].equals("b")){
-                    p = new Milk();
+
+                    if(command[2].equals("a")){
+                        p = new Butter();
+                    }
+                    if(command[2].equals("b")){
+                        p = new Milk();
+                    }
+                    if(command[2].equals("c")){
+                        p = new Banana();
+                    }
+                    this.fridge.tell(new Fridge.AddProduct(p));
                 }
                 if(command[1].equals("c")){
-                    p = new Banana();
+
+                    if(command[2].equals("a")){
+                        p = new Butter();
+                    }
+                    if(command[2].equals("b")){
+                        p = new Milk();
+                    }
+                    if(command[2].equals("c")){
+                        p = new Banana();
+                    }
+                    this.fridge.tell(new Fridge.ConsumeProduct(p));
+
                 }
-//                List<Product> products = new LinkedList<>();
-//                products.add(new Milk());
-//                products.add(new Banana());
-//                products.add(new Butter());
-                this.fridge.tell(new Fridge.AddProduct(p));
             }
+
             // TODO: process Input
         }
         getContext().getLog().info("UI done");
