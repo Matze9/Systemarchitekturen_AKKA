@@ -1,4 +1,8 @@
-public class Butter extends Product{
+package at.fhv.sysarch.lab2.homeautomation.modelClasses;
+
+import at.fhv.sysarch.lab2.homeautomation.modelClasses.Product;
+
+public class Butter extends Product {
 
     private final double weight;
     private final int storagePoints;

@@ -1,10 +1,14 @@
-public class Milk extends Product{
+package at.fhv.sysarch.lab2.homeautomation.modelClasses;
+
+import at.fhv.sysarch.lab2.homeautomation.modelClasses.Product;
+
+public class Milk extends Product {
 
     private final double weight;
     private final int storagePoints;
     private final String productName;
 
-    public Banana(){
+    public Milk(){
         this.weight = 1.0;
         this.storagePoints = 3;
         this.productName = "Milk";
