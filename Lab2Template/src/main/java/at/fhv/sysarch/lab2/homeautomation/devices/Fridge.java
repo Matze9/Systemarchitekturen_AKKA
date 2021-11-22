@@ -7,6 +7,8 @@ import akka.actor.typed.javadsl.*;
 import at.fhv.sysarch.lab2.homeautomation.modelClasses.Product;
 import at.fhv.sysarch.lab2.homeautomation.modelClasses.Stock;
 
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
@@ -16,7 +18,7 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
     public interface FridgeCommand {}
 
     public static final class GetProducts implements FridgeCommand{
-        private List<Product> products;
+        private HashMap<String, LinkedList<Product>> products;
 
         public GetProducts (){products = stock.getAllProducts();}
     }
@@ -69,22 +71,25 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
 
 
     private Behavior<FridgeCommand> onGetProducts (GetProducts g){
-        getContext().getLog().info("Your Fridge has following items: ");
-        stock.getAllProducts().forEach(product -> getContext().getLog().info(product.getProductName()));
+        getContext().getLog().info("All items in your fridge: ");
+        stock.getAllProducts().forEach((productName, productList) ->{
+            productList.forEach(product -> getContext().getLog().info(product.getProductName() + ", added: " + product.getAddedOn() ));
+        });
         return this;
     }
 
     private Behavior<FridgeCommand> onAddProduct (AddProduct p){
         getContext().getLog().info("Adding item to your fridge: " + p.product.getProductName() , p.product.getProductName());
 
-
         getContext().getLog().info("All items in your fridge: ");
-        stock.getAllProducts().forEach(product -> getContext().getLog().info(product.getProductName()));
+        stock.getAllProducts().forEach((productName, productList) ->{
+            productList.forEach(product -> getContext().getLog().info(product.getProductName() + ", added: " + product.getAddedOn() ));
+        });
         return this;
     }
 
     private Behavior<FridgeCommand> onProductConsumption(ConsumeProduct c){
-        if(stock.getAllProducts().contains(c.product)){
+        if(stock.getAllProducts().containsKey(c.product.getProductName())){
            stock.removeProduct(c.product);
            getContext().getLog().info("Sucessfully removed " + c.product.getProductName(), c.product.getProductName());
         }else{
