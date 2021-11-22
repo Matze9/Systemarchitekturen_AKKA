@@ -7,6 +7,7 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
+import at.fhv.sysarch.lab2.homeautomation.blackboard.Blackboard;
 
 import java.util.Optional;
 
@@ -22,17 +23,19 @@ public class TemperatureSensor extends AbstractBehavior<TemperatureSensor.Temper
         }
     }
 
-    public static Behavior<TemperatureCommand> create(ActorRef<AirCondition.AirConditionCommand> airCondition, String groupId, String deviceId) {
-        return Behaviors.setup(context -> new TemperatureSensor(context, airCondition, groupId, deviceId));
+    public static Behavior<TemperatureCommand> create(ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<Blackboard.BlackBoardCommand> blackBoard, String groupId, String deviceId) {
+        return Behaviors.setup(context -> new TemperatureSensor(context, airCondition, blackBoard, groupId, deviceId));
     }
 
     private final String groupId;
     private final String deviceId;
     private ActorRef<AirCondition.AirConditionCommand> airCondition;
+    private ActorRef<Blackboard.BlackBoardCommand> blackBoard;
 
-    public TemperatureSensor(ActorContext<TemperatureCommand> context, ActorRef<AirCondition.AirConditionCommand> airCondition, String groupId, String deviceId) {
+    public TemperatureSensor(ActorContext<TemperatureCommand> context, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<Blackboard.BlackBoardCommand> blackBoard, String groupId, String deviceId) {
         super(context);
         this.airCondition = airCondition;
+        this.blackBoard = blackBoard;
         this.groupId = groupId;
         this.deviceId = deviceId;
 
@@ -50,6 +53,8 @@ public class TemperatureSensor extends AbstractBehavior<TemperatureSensor.Temper
     private Behavior<TemperatureCommand> onReadTemperature(ReadTemperature r) {
         getContext().getLog().info("TemperatureSensor received {}", r.value.get());
         this.airCondition.tell(new AirCondition.EnrichedTemperature(r.value, Optional.of("Celsius")));
+
+        this.blackBoard.tell(new Blackboard.updateTemperature(r.value.get()));
         return this;
     }
 
