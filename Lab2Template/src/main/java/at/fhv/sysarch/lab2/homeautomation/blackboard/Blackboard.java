@@ -8,6 +8,8 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import at.fhv.sysarch.lab2.homeautomation.devices.AirCondition;
 
+import java.util.Optional;
+
 public class Blackboard extends AbstractBehavior<Blackboard.BlackBoardCommand> {
 
     public interface BlackBoardCommand {}
@@ -50,7 +52,8 @@ public class Blackboard extends AbstractBehavior<Blackboard.BlackBoardCommand> {
 
     private Behavior<BlackBoardCommand> onUpdateTemperature(updateTemperature command){
         temperature = command.temperature;
-        System.out.println("Updated temperature!");
+        getContext().getLog().info("Updated temperature on Blackboard to " + temperature);
+        this.airCondition.tell(new AirCondition.EnrichedTemperature(Optional.ofNullable(command.temperature), Optional.of("Celsius")));
         return this;
     }
 

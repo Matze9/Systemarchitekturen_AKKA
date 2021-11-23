@@ -63,6 +63,10 @@ public class UI extends AbstractBehavior<Void> {
             if(command[0].equals("a")) {
                 this.airCondition.tell(new AirCondition.PowerAirCondition(Optional.of(Boolean.valueOf(command[1]))));
             }
+            if(command[0].equals("w")){
+
+            }
+
             // TODO: process Input
         }
         getContext().getLog().info("UI done");
