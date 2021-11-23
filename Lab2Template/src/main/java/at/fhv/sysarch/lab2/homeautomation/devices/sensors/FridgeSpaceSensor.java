@@ -16,9 +16,6 @@ import java.util.List;
 public class FridgeSpaceSensor extends AbstractBehavior<FridgeSpaceSensor.ValidateSpace> {
 
 
-//    public Behavior<FridgeSpaceCommand>create(ActorRef<FridgeSpaceSensor.FridgeSpaceCommand> fridgeSpaceSensor, String groupId, String deviceId){
-//        return Behaviors.setup(context -> new FridgeSpaceSensor(context, fridgeSpaceSensor, groupId, deviceId));
-//    }
 
     public static final class ValidateSpace{
         private List<Product> orderedProducts;
@@ -32,15 +29,6 @@ public class FridgeSpaceSensor extends AbstractBehavior<FridgeSpaceSensor.Valida
         }
     }
 
-//    public static final class ValidationResponse{
-//        public final String msg;
-//        public final ActorRef<ValidateSpace> from;
-//
-//        public ValidationResponse(String msg, ActorRef<ValidateSpace> from){
-//            this.msg = msg;
-//            this.from = from;
-//        }
-//    }
 
     public static Behavior<ValidateSpace>create(){
         return Behaviors.setup(FridgeSpaceSensor::new);
@@ -48,7 +36,7 @@ public class FridgeSpaceSensor extends AbstractBehavior<FridgeSpaceSensor.Valida
 
     public FridgeSpaceSensor(ActorContext<ValidateSpace> context){
         super(context);
-        getContext().getLog().info("SENSOR STARTED.");
+        getContext().getLog().info("SPACE SENSOR ACTIVE.");
     }
 
     @Override
@@ -78,53 +66,5 @@ public class FridgeSpaceSensor extends AbstractBehavior<FridgeSpaceSensor.Valida
     }
 
 
-
-//    private String groupId;
-//    private String deviceId;
-//    private ActorRef<FridgeSpaceSensor.FridgeSpaceCommand> fridgeSpaceSensor;
-//
-//    public FridgeSpaceSensor(ActorContext<FridgeSpaceCommand> context, ActorRef<FridgeSpaceSensor.FridgeSpaceCommand> fridgeSpaceSensor, String groupId, String deviceId){
-//        super(context);
-//        this.fridgeSpaceSensor = fridgeSpaceSensor;
-//        this.groupId = groupId;
-//        this.deviceId = deviceId;
-//
-//        getContext().getLog().info("Fridge Space Sensor successfully started.");
-//
-//    }
-//
-//
-//    @Override
-//    public Receive<FridgeSpaceCommand> createReceive() {
-//        //return newReceiveBuilder().onMessage(ValidateSpace.class, this::onSpaceValidation).onSignal(PostStop.class, signal -> onPostStop()).build();
-//        return newReceiveBuilder().onMessage(ValidateSpace.class, this::onSpaceValidation).onSignal(PostStop.class, signal -> onPostStop()).build();
-//    }
-//
-//    public Behavior<FridgeSpaceSensor.FridgeSpaceCommand> onSpaceValidation(ValidateSpace v){
-//
-//        int orderedProductsSpace = 0;
-//        int currentSpace;
-//        for (Product p : v.orderedProducts){
-//            orderedProductsSpace += p.getStoragePoints();
-//        }
-//
-//        currentSpace = orderedProductsSpace + v.stock.getCurrentSpace();
-//
-//        if(currentSpace <= v.stock.getMaxSpace()){
-//
-//            //TODO: send ok message to fridge
-//            getContext().getLog().info("Fridge space is OK");
-//        }else{
-//            //TODO: send error message to fridge
-//            getContext().getLog().info("Fridge space is not OK");
-//        }
-//
-//        return this;
-//    }
-//
-//    private FridgeSpaceSensor onPostStop(){
-//        getContext().getLog().info("Fridge sapce sensor actor {}-{} stopped", groupId, deviceId);
-//        return this;
-//    }
 
 }

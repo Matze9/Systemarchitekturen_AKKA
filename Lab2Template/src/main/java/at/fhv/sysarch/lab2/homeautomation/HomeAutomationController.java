@@ -19,8 +19,7 @@ public class HomeAutomationController extends AbstractBehavior<Void>{
     private ActorRef<TemperatureSensor.TemperatureCommand> tempSensor;
     private  ActorRef<AirCondition.AirConditionCommand> airCondition;
     private ActorRef<Fridge.FridgeCommand> fridge;
-    private ActorRef<OrderProcessor.OrderProcessorCommand> orderProcessor;
-    private ActorRef<FridgeSpaceSensor.ValidateSpace> spaceSensor;
+
 
     public static Behavior<Void> create() {
         return Behaviors.setup(HomeAutomationController::new);
@@ -33,9 +32,8 @@ public class HomeAutomationController extends AbstractBehavior<Void>{
         this.airCondition = getContext().spawn(AirCondition.create("2", "1"), "AirCondition");
         this.tempSensor = getContext().spawn(TemperatureSensor.create(this.airCondition, "1", "1"), "temperatureSensor");
         this.fridge = getContext().spawn(Fridge.create(this.fridge, "3", "1"), "Fridge");
-        this.orderProcessor = getContext().spawn(OrderProcessor.create(this.orderProcessor), "OrderProcessor");
-        this.spaceSensor = getContext().spawn(FridgeSpaceSensor.create(), "SpaceSensor");
-        ActorRef<Void> ui = getContext().spawn(UI.create(this.tempSensor, this.airCondition, this.fridge, this.orderProcessor, this.spaceSensor), "UI");
+
+        ActorRef<Void> ui = getContext().spawn(UI.create(this.tempSensor, this.airCondition, this.fridge), "UI");
         System.out.println("Homeautomationcontroller started!");
         getContext().getLog().info("HomeAutomation Application started");
     }
