@@ -11,6 +11,7 @@ import akka.actor.typed.javadsl.Receive;
 import at.fhv.sysarch.lab2.homeautomation.HomeAutomationController;
 import at.fhv.sysarch.lab2.homeautomation.devices.AirCondition;
 import at.fhv.sysarch.lab2.homeautomation.devices.TemperatureSensor;
+import at.fhv.sysarch.lab2.homeautomation.devices.WeatherSensor;
 
 import java.util.Optional;
 import java.util.Scanner;
@@ -19,17 +20,19 @@ public class UI extends AbstractBehavior<Void> {
 
     private ActorRef<TemperatureSensor.TemperatureCommand> tempSensor;
     private ActorRef<AirCondition.AirConditionCommand> airCondition;
+    private ActorRef<WeatherSensor.WeatherCommand> weatherSensor;
 
-    public static Behavior<Void> create(ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<AirCondition.AirConditionCommand> airCondition) {
-        return Behaviors.setup(context -> new UI(context, tempSensor, airCondition));
+    public static Behavior<Void> create(ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<WeatherSensor.WeatherCommand> weatherSensor, ActorRef<AirCondition.AirConditionCommand> airCondition) {
+        return Behaviors.setup(context -> new UI(context, tempSensor, weatherSensor, airCondition));
     }
 
-    private  UI(ActorContext<Void> context, ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<AirCondition.AirConditionCommand> airCondition) {
+    private  UI(ActorContext<Void> context, ActorRef<TemperatureSensor.TemperatureCommand> tempSensor , ActorRef<WeatherSensor.WeatherCommand> weatherSensor, ActorRef<AirCondition.AirConditionCommand> airCondition) {
         super(context);
         // TODO: implement actor and behavior as needed
         // TODO: move UI initialization to appropriate place
         this.airCondition = airCondition;
         this.tempSensor = tempSensor;
+        this.weatherSensor = weatherSensor;
         new Thread(() -> { this.runCommandLine(); }).start();
 
         getContext().getLog().info("UI started");
@@ -64,7 +67,12 @@ public class UI extends AbstractBehavior<Void> {
                 this.airCondition.tell(new AirCondition.PowerAirCondition(Optional.of(Boolean.valueOf(command[1]))));
             }
             if(command[0].equals("w")){
-
+                WeatherSensor.Weather newWeather;
+                if(command[1].equalsIgnoreCase("sunny")){
+                    this.weatherSensor.tell(new WeatherSensor.updateWeather(WeatherSensor.Weather.SUNNY));
+                } else if (command[1].equalsIgnoreCase("cloudy")){
+                    this.weatherSensor.tell(new WeatherSensor.updateWeather(WeatherSensor.Weather.CLOUDY));
+                }
             }
 
             // TODO: process Input

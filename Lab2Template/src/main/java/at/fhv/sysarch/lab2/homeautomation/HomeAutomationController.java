@@ -11,10 +11,12 @@ import akka.actor.typed.javadsl.Receive;
 import at.fhv.sysarch.lab2.homeautomation.blackboard.Blackboard;
 import at.fhv.sysarch.lab2.homeautomation.devices.AirCondition;
 import at.fhv.sysarch.lab2.homeautomation.devices.TemperatureSensor;
+import at.fhv.sysarch.lab2.homeautomation.devices.WeatherSensor;
 import at.fhv.sysarch.lab2.homeautomation.ui.UI;
 
 public class HomeAutomationController extends AbstractBehavior<Void>{
     private ActorRef<TemperatureSensor.TemperatureCommand> tempSensor;
+    private ActorRef<WeatherSensor.WeatherCommand> weatherSensor;
     private  ActorRef<AirCondition.AirConditionCommand> airCondition;
     private ActorRef<Blackboard.BlackBoardCommand> blackBoard;
 
@@ -34,8 +36,9 @@ public class HomeAutomationController extends AbstractBehavior<Void>{
 
         //TODO:SENSORS
         this.tempSensor = getContext().spawn(TemperatureSensor.create(this.airCondition, this.blackBoard, "1", "1"), "temperatureSensor");
-        ActorRef<Void> ui = getContext().spawn(UI.create(this.tempSensor, this.airCondition), "UI");
+        this.weatherSensor = getContext().spawn(WeatherSensor.create(this.blackBoard), "weatherSensor");
 
+        ActorRef<Void> ui = getContext().spawn(UI.create(this.tempSensor, this.weatherSensor, this.airCondition), "UI");
 
         getContext().getLog().info("HomeAutomation Application started");
     }

@@ -7,11 +7,13 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import at.fhv.sysarch.lab2.homeautomation.devices.AirCondition;
+import at.fhv.sysarch.lab2.homeautomation.devices.WeatherSensor;
 
 import java.util.Optional;
 
 public class Blackboard extends AbstractBehavior<Blackboard.BlackBoardCommand> {
 
+    //////////////COMMANDS//////////////////
     public interface BlackBoardCommand {}
 
     public enum showStatus implements BlackBoardCommand {
@@ -26,9 +28,19 @@ public class Blackboard extends AbstractBehavior<Blackboard.BlackBoardCommand> {
         }
     }
 
-    ActorRef<AirCondition.AirConditionCommand> airCondition;
+    public static class updateWeather implements BlackBoardCommand {
+        public final WeatherSensor.Weather weather;
 
+        public updateWeather (WeatherSensor.Weather newWeather){
+            this.weather = newWeather;
+        }
+    }
+
+    ////////////BLACKBOARD/////////////////////
+
+    private ActorRef<AirCondition.AirConditionCommand> airCondition;
     private Double temperature = 0.0;
+    private WeatherSensor.Weather weather;
 
     public static Behavior<Blackboard.BlackBoardCommand> create(ActorRef<AirCondition.AirConditionCommand> airCondition){
         return Behaviors.setup(context -> new Blackboard(context, airCondition));
@@ -38,7 +50,6 @@ public class Blackboard extends AbstractBehavior<Blackboard.BlackBoardCommand> {
         super(context);
         this.airCondition = airCondition;
         getContext().getLog().info("Blackboard Active");
-        System.out.println("Blackboard Active");
     }
 
 
@@ -47,6 +58,7 @@ public class Blackboard extends AbstractBehavior<Blackboard.BlackBoardCommand> {
         return newReceiveBuilder()
                 .onMessageEquals(showStatus.INSTANCE, this::onShowStatus)
                 .onMessage(updateTemperature.class, this::onUpdateTemperature)
+                .onMessage(updateWeather.class, this::onUpdateWeather)
                 .build();
     }
 
@@ -54,6 +66,12 @@ public class Blackboard extends AbstractBehavior<Blackboard.BlackBoardCommand> {
         temperature = command.temperature;
         getContext().getLog().info("Updated temperature on Blackboard to " + temperature);
         this.airCondition.tell(new AirCondition.EnrichedTemperature(Optional.ofNullable(command.temperature), Optional.of("Celsius")));
+        return this;
+    }
+
+    private Behavior<BlackBoardCommand> onUpdateWeather (updateWeather command){
+        this.weather = command.weather;
+        getContext().getLog().info("Updated weather on Blackboard to " + command.weather.toString());
         return this;
     }
 
