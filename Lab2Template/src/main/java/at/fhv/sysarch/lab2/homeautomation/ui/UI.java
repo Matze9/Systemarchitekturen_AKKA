@@ -113,6 +113,10 @@ public class UI extends AbstractBehavior<Void> {
                         p = new Banana();
                     }
                     this.fridge.tell(new Fridge.ConsumeProduct(p));
+
+                 //requests space left
+                }else if(command[1].equals("s")){
+                    this.fridge.tell(new Fridge.GetFridgeSpaceLeft());
                 }
 
 

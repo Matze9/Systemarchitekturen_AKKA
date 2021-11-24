@@ -60,9 +60,7 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
             this.replyTo = replyTo;
 
         }
-
     }
-
     //returns order history from Fridge
     public static final class GetItemsFromOrderHistory implements FridgeCommand {
          //TODO: send response to UI
@@ -71,6 +69,14 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
             this.orderHistoryEvents = orderHistory;
         }
 
+    }
+
+    //returns available Space from fridge
+    public static final class GetFridgeSpaceLeft implements FridgeCommand{
+        private Stock stock1;
+        public GetFridgeSpaceLeft(){
+            this.stock1 = stock;
+        }
     }
 
 
@@ -180,6 +186,13 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
        return this;
     }
 
+    private Behavior<FridgeCommand>onSpaceLeftRequest(GetFridgeSpaceLeft g){
+        int spaceLeft = g.stock1.getMaxSpace() - g.stock1.getCurrentSpace();
+        getContext().getLog().info("[FRIDGE] " + spaceLeft + "/" + g.stock1.getMaxSpace() + " space left");
+
+        return this;
+    }
+
 
 
     @Override
@@ -190,6 +203,7 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
                 .onMessage(AddItems.class, this::onItemsAdd)
                 .onMessage(GetProducts.class, this::onGetProducts)
                 .onMessage(GetItemsFromOrderHistory.class, this::onFridgeOrderHistoryRequest)
+                .onMessage(GetFridgeSpaceLeft.class, this::onSpaceLeftRequest)
                 .build();
     }
 

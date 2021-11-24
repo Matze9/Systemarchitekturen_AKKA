@@ -44,6 +44,7 @@ public class FridgeWeightSensor extends AbstractBehavior<FridgeWeightSensor.Vali
         }
 
         currentWeight = orderedProductsWeight + v.stock.getCurrentWeight();
+        v.stock.setCurrentWeight(currentWeight);
 
         if(currentWeight <= v.stock.getMaxWeight()){
 

@@ -52,7 +52,7 @@ public class FridgeSpaceSensor extends AbstractBehavior<FridgeSpaceSensor.Valida
         }
 
         currentSpace = orderedProductsSpace + v.stock.getCurrentSpace();
-
+        v.stock.setCurrentSpace(currentSpace);
         if(currentSpace <= v.stock.getMaxSpace()){
 
             v.replyTo.tell(new OrderProcessor.SpaceValidationResponse("OK", getContext().getSelf()));

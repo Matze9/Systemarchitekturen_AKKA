@@ -9,9 +9,9 @@ public class Stock {
 
     private HashMap<String, LinkedList<Product>> allProducts;
     private final double maxWeight;
-    private final double currentWeight;
+    private double currentWeight;
     private final int maxSpace;
-    private final int currentSpace;
+    private int currentSpace;
 
     public Stock(){
         allProducts = new HashMap<>();
@@ -33,6 +33,8 @@ public class Stock {
     }
 
     public void removeProduct (Product product){
+            setCurrentWeight(currentWeight - product.getWeight());
+            setCurrentSpace(currentSpace - product.getStoragePoints());
             allProducts.get(product.getProductName()).removeFirst();
     }
 
@@ -40,6 +42,14 @@ public class Stock {
 
     public HashMap<String, LinkedList<Product>> getAllProducts() {
         return allProducts;
+    }
+
+    public void setCurrentSpace(int updatedSpace){
+        this.currentSpace = updatedSpace;
+    }
+
+    public void setCurrentWeight(double updatedWeight){
+        this.currentWeight = updatedWeight;
     }
 
     public double getMaxWeight() {
@@ -57,4 +67,6 @@ public class Stock {
     public int getCurrentSpace() {
         return currentSpace;
     }
+
+
 }
