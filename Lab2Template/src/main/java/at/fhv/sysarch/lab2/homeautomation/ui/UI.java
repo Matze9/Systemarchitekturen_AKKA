@@ -77,6 +77,7 @@ public class UI extends AbstractBehavior<Void> {
                 Product p = null;
                 LinkedList<Product> products = new LinkedList<>();
 
+                //place order
                 if(command[1].equals("p")){
 
                     if(command[2].equals("a")){
@@ -92,7 +93,29 @@ public class UI extends AbstractBehavior<Void> {
                     products.add(p);
                     this.fridge.tell(new Fridge.PlaceOrder(products, stock));
 
+                 //get all products the fridge contains
+                }else if (command[1].equals("g")){
+                    this.fridge.tell(new Fridge.GetProducts());
+
+                //get order history from fridge
+                }else if (command[1].equals("h")){
+                    this.fridge.tell(new Fridge.GetItemsFromOrderHistory());
+
+                //consume a certain product from fridge
+                }else if(command[1].equals("c")){
+                    if(command[2].equals("a")){
+                        p = new Butter();
+                    }
+                    if(command[2].equals("b")){
+                        p = new Milk();
+                    }
+                    if(command[2].equals("c")){
+                        p = new Banana();
+                    }
+                    this.fridge.tell(new Fridge.ConsumeProduct(p));
                 }
+
+
             }
 
 

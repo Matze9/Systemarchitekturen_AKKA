@@ -56,7 +56,6 @@ public class FridgeSpaceSensor extends AbstractBehavior<FridgeSpaceSensor.Valida
         if(currentSpace <= v.stock.getMaxSpace()){
 
             v.replyTo.tell(new OrderProcessor.SpaceValidationResponse("OK", getContext().getSelf()));
-            getContext().getLog().info("Fridge space is OK");
         }else{
             v.replyTo.tell(new OrderProcessor.SpaceValidationResponse("ERROR", getContext().getSelf()));
             getContext().getLog().info("Fridge space ERROR");

@@ -48,7 +48,6 @@ public class FridgeWeightSensor extends AbstractBehavior<FridgeWeightSensor.Vali
         if(currentWeight <= v.stock.getMaxWeight()){
 
             v.replyTo.tell(new OrderProcessor.WeightValidationResponse("OK", getContext().getSelf()));
-            getContext().getLog().info("Fridge weight is OK");
         }else{
             v.replyTo.tell(new OrderProcessor.WeightValidationResponse("ERROR", getContext().getSelf()));
             getContext().getLog().info("Fridge weight ERROR");

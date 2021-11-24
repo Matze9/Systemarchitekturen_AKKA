@@ -21,6 +21,7 @@ public class OrderProcessor extends AbstractBehavior<OrderProcessor.OrderProcess
 
     public interface OrderProcessorCommand{}
 
+    //response from space sensor check
     public static class SpaceValidationResponse implements OrderProcessorCommand{
         private String msg;
         private ActorRef<FridgeSpaceSensor.ValidateSpace> from;
@@ -39,6 +40,7 @@ public class OrderProcessor extends AbstractBehavior<OrderProcessor.OrderProcess
         }
     }
 
+    //response from weight validation check
     public static class WeightValidationResponse implements OrderProcessorCommand{
         private String msg;
         private ActorRef<FridgeWeightSensor.ValidateWeight> from;
@@ -57,6 +59,7 @@ public class OrderProcessor extends AbstractBehavior<OrderProcessor.OrderProcess
         }
     }
 
+    //call for the space sensor
     public static class CallFridgeSpaceSensor implements OrderProcessorCommand{
         private LinkedList<Product> products;
         public final ActorRef<FridgeSpaceSensor.ValidateSpace> spaceSensor;
@@ -67,6 +70,7 @@ public class OrderProcessor extends AbstractBehavior<OrderProcessor.OrderProcess
         }
     }
 
+    //call for the weight sensor
     public static class CallFridgeWeightSensor implements OrderProcessorCommand{
         private LinkedList<Product> products;
         public final ActorRef<FridgeWeightSensor.ValidateWeight> weightSensor;
@@ -78,21 +82,48 @@ public class OrderProcessor extends AbstractBehavior<OrderProcessor.OrderProcess
     }
 
 
+    //response from fridge when items are added
+    public static class FridgeItemsAddedResponse implements OrderProcessorCommand{
+        private final String msg;
+        private final ActorRef<Fridge.FridgeCommand>from;
+
+        public FridgeItemsAddedResponse(String msg, ActorRef<Fridge.FridgeCommand> from){
+            this.msg = msg;
+            this.from = from;
+        }
+    }
 
 
-    public static Behavior<OrderProcessorCommand>create(ActorRef<OrderProcessor.OrderProcessorCommand> orderProcessorCommand, Stock stock, LinkedList<Product> orderItems){
-        return Behaviors.setup(context -> new OrderProcessor(context, orderProcessorCommand, stock, orderItems));
+
+
+
+    //order processor setup
+    public static Behavior<OrderProcessorCommand>create(ActorRef<Fridge.FridgeCommand>fridge, Stock stock, LinkedList<Product> orderItems){
+        return Behaviors.setup(context -> new OrderProcessor(context, fridge, stock, orderItems));
     }
 
     private static Stock stock;
     private LinkedList<Product> orderItems;
-    private final ActorRef<OrderProcessor.OrderProcessorCommand> orderProcessorCommand;
+    //private final ActorRef<OrderProcessor.OrderProcessorCommand> orderProcessorCommand;
+    private final ActorRef<Fridge.FridgeCommand> fridge;
+    private String weightSensorResponse;
+    private String spaceSensorResponse;
+    private String fridgeItemsAddedResponse;
 
-    public OrderProcessor(ActorContext<OrderProcessorCommand>context, ActorRef<OrderProcessor.OrderProcessorCommand> orderProcessorCommand, Stock stock, LinkedList<Product> orderItems){
+    public OrderProcessor(
+            ActorContext<OrderProcessorCommand>context,
+            ActorRef<Fridge.FridgeCommand> fridge,
+            Stock stock,
+            LinkedList<Product> orderItems){
+
         super(context);
         this.stock = stock;
         this.orderItems = orderItems;
-        this.orderProcessorCommand = orderProcessorCommand;
+        this.fridge = fridge;
+        //this.orderProcessorCommand = orderProcessorCommand;
+        this.weightSensorResponse = "ERROR";
+        this.spaceSensorResponse = "ERROR";
+        this.fridgeItemsAddedResponse = "ERROR";
 
         getContext().getLog().info("[ORDERPROCESSOR] activated");
     }
@@ -106,21 +137,56 @@ public class OrderProcessor extends AbstractBehavior<OrderProcessor.OrderProcess
 
     //receives response from space sensor
     private Behavior<OrderProcessorCommand> onFridgeSpaceSensorResponse(SpaceValidationResponse s){
+        spaceSensorResponse = s.getMsg();
         getContext().getLog().info("[ORDERPROCESSOR] response recieved from space sensor: " + s.getMsg());
-        return this;
+        return validateSensors();
     }
 
     //send request to weight sensor
     private Behavior<OrderProcessorCommand> onFridgeWeightSensorCall(CallFridgeWeightSensor c){
-        getContext().getLog().info("hier komm ich rein");
         c.weightSensor.tell(new FridgeWeightSensor.ValidateWeight(c.products, stock, getContext().getSelf()));
         return Behaviors.same();
     }
 
     //receives response from weight sensor
     private Behavior<OrderProcessorCommand> onFridgeWeightSensorResponse(WeightValidationResponse w){
+        weightSensorResponse = w.getMsg();
         getContext().getLog().info("[ORDERPROCESSOR] response recieved from weight sensor:  " + w.getMsg());
+        return validateSensors();
+    }
+
+
+    //returns a ok msg from the fridge when all items are added
+    private Behavior<OrderProcessorCommand> onFridgeItemsAddedResponse(FridgeItemsAddedResponse f){
+        this.fridgeItemsAddedResponse = f.msg;
+        getContext().getLog().info("[ORDERPROCESSOR] response from fridge: all items were added.");
+        return addItemsToFridgeIfSensorResponseIsOk();
+
+    }
+
+    private Behavior<OrderProcessorCommand>validateSensors(){
+        if(weightSensorResponse.equals("OK") && spaceSensorResponse.equals("OK")){
+            //TODO: publish order to orderHistory and add them to fridge + create Receipt
+            getContext().getLog().info("[ORDERPROCESSOR] both sensors OK");
+            fridge.tell(new Fridge.AddItems(orderItems, getContext().getSelf()));
+            return addItemsToFridgeIfSensorResponseIsOk();
+            //return Behaviors.stopped();
+        }else{
+
+            //TODO: proper error handling and error msg for client
+            return this;
+        }
+    }
+
+    private Behavior<OrderProcessorCommand> addItemsToFridgeIfSensorResponseIsOk(){
+
+        if(fridgeItemsAddedResponse.equals("OK")){
+            getContext().getLog().info("[ORDERPROCESSOR] YOUR RECEIPT: ");
+            orderItems.forEach(product -> getContext().getLog().info(product.getProductName() + ", ADDED ON: " + product.getAddedOn()));
+            return Behaviors.stopped();
+        }
         return this;
+
     }
 
 
@@ -131,6 +197,7 @@ public class OrderProcessor extends AbstractBehavior<OrderProcessor.OrderProcess
                 .onMessage(SpaceValidationResponse.class, this::onFridgeSpaceSensorResponse)
                 .onMessage(CallFridgeWeightSensor.class, this::onFridgeWeightSensorCall)
                 .onMessage(WeightValidationResponse.class, this::onFridgeWeightSensorResponse)
+                .onMessage(FridgeItemsAddedResponse.class, this::onFridgeItemsAddedResponse)
                 .build();
 
     }
