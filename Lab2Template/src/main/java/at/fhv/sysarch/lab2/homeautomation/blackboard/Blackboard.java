@@ -36,11 +36,20 @@ public class Blackboard extends AbstractBehavior<Blackboard.BlackBoardCommand> {
         }
     }
 
+    public static class startStopMovie implements BlackBoardCommand {
+        public final boolean isPlaying;
+
+        public startStopMovie (boolean isPlaying){
+            this.isPlaying = isPlaying;
+        }
+    }
+
     ////////////BLACKBOARD/////////////////////
 
     private ActorRef<AirCondition.AirConditionCommand> airCondition;
     private Double temperature = 0.0;
     private WeatherSensor.Weather weather;
+    private boolean movieIsPlaing = false;
 
     public static Behavior<Blackboard.BlackBoardCommand> create(ActorRef<AirCondition.AirConditionCommand> airCondition){
         return Behaviors.setup(context -> new Blackboard(context, airCondition));
@@ -59,7 +68,14 @@ public class Blackboard extends AbstractBehavior<Blackboard.BlackBoardCommand> {
                 .onMessageEquals(showStatus.INSTANCE, this::onShowStatus)
                 .onMessage(updateTemperature.class, this::onUpdateTemperature)
                 .onMessage(updateWeather.class, this::onUpdateWeather)
+                .onMessage(startStopMovie.class, this::onStartStopMovie)
                 .build();
+    }
+
+    private Behavior<BlackBoardCommand> onStartStopMovie (startStopMovie command){
+        movieIsPlaing = command.isPlaying;
+        getContext().getLog().info("Movie is playing = " + movieIsPlaing);
+        return this;
     }
 
     private Behavior<BlackBoardCommand> onUpdateTemperature(updateTemperature command){

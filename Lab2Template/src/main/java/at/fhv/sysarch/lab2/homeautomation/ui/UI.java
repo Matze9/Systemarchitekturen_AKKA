@@ -10,6 +10,7 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import at.fhv.sysarch.lab2.homeautomation.HomeAutomationController;
 import at.fhv.sysarch.lab2.homeautomation.devices.AirCondition;
+import at.fhv.sysarch.lab2.homeautomation.devices.MediaStation;
 import at.fhv.sysarch.lab2.homeautomation.devices.TemperatureSensor;
 import at.fhv.sysarch.lab2.homeautomation.devices.WeatherSensor;
 
@@ -21,18 +22,20 @@ public class UI extends AbstractBehavior<Void> {
     private ActorRef<TemperatureSensor.TemperatureCommand> tempSensor;
     private ActorRef<AirCondition.AirConditionCommand> airCondition;
     private ActorRef<WeatherSensor.WeatherCommand> weatherSensor;
+    private  ActorRef<MediaStation.MediaCommand> mediaStation;
 
-    public static Behavior<Void> create(ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<WeatherSensor.WeatherCommand> weatherSensor, ActorRef<AirCondition.AirConditionCommand> airCondition) {
-        return Behaviors.setup(context -> new UI(context, tempSensor, weatherSensor, airCondition));
+    public static Behavior<Void> create(ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<WeatherSensor.WeatherCommand> weatherSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<MediaStation.MediaCommand> mediaStation) {
+        return Behaviors.setup(context -> new UI(context, tempSensor, weatherSensor, airCondition, mediaStation));
     }
 
-    private  UI(ActorContext<Void> context, ActorRef<TemperatureSensor.TemperatureCommand> tempSensor , ActorRef<WeatherSensor.WeatherCommand> weatherSensor, ActorRef<AirCondition.AirConditionCommand> airCondition) {
+    private  UI(ActorContext<Void> context, ActorRef<TemperatureSensor.TemperatureCommand> tempSensor , ActorRef<WeatherSensor.WeatherCommand> weatherSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<MediaStation.MediaCommand> mediaStation) {
         super(context);
         // TODO: implement actor and behavior as needed
         // TODO: move UI initialization to appropriate place
         this.airCondition = airCondition;
         this.tempSensor = tempSensor;
         this.weatherSensor = weatherSensor;
+        this.mediaStation = mediaStation;
         new Thread(() -> { this.runCommandLine(); }).start();
 
         getContext().getLog().info("UI started");
@@ -72,6 +75,14 @@ public class UI extends AbstractBehavior<Void> {
                     this.weatherSensor.tell(new WeatherSensor.updateWeather(WeatherSensor.Weather.SUNNY));
                 } else if (command[1].equalsIgnoreCase("cloudy")){
                     this.weatherSensor.tell(new WeatherSensor.updateWeather(WeatherSensor.Weather.CLOUDY));
+                }
+            }
+
+            if(command[0].equals("ms")){
+                if(command[1].equalsIgnoreCase("start")){
+                    this.mediaStation.tell(new MediaStation.playMovie());
+                } else if (command[1].equalsIgnoreCase("stop")){
+                    this.mediaStation.tell(new MediaStation.stopMovie());
                 }
             }
 
