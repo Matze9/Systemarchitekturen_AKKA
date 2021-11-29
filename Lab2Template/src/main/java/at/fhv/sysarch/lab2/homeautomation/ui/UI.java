@@ -11,9 +11,16 @@ import akka.actor.typed.javadsl.Receive;
 import at.fhv.sysarch.lab2.homeautomation.HomeAutomationController;
 import at.fhv.sysarch.lab2.homeautomation.devices.AirCondition;
 import at.fhv.sysarch.lab2.homeautomation.devices.MediaStation;
+import at.fhv.sysarch.lab2.homeautomation.devices.Fridge;
 import at.fhv.sysarch.lab2.homeautomation.devices.TemperatureSensor;
 import at.fhv.sysarch.lab2.homeautomation.devices.WeatherSensor;
+import at.fhv.sysarch.lab2.homeautomation.modelClasses.Banana;
+import at.fhv.sysarch.lab2.homeautomation.modelClasses.Butter;
+import at.fhv.sysarch.lab2.homeautomation.modelClasses.Milk;
+import at.fhv.sysarch.lab2.homeautomation.modelClasses.Product;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
 
@@ -23,12 +30,16 @@ public class UI extends AbstractBehavior<Void> {
     private ActorRef<AirCondition.AirConditionCommand> airCondition;
     private ActorRef<WeatherSensor.WeatherCommand> weatherSensor;
     private  ActorRef<MediaStation.MediaCommand> mediaStation;
+    private ActorRef<Fridge.FridgeCommand> fridge;
 
     public static Behavior<Void> create(ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<WeatherSensor.WeatherCommand> weatherSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<MediaStation.MediaCommand> mediaStation) {
         return Behaviors.setup(context -> new UI(context, tempSensor, weatherSensor, airCondition, mediaStation));
+    public static Behavior<Void> create(ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<Fridge.FridgeCommand> fridge) {
+        return Behaviors.setup(context -> new UI(context, tempSensor, airCondition, fridge));
     }
 
     private  UI(ActorContext<Void> context, ActorRef<TemperatureSensor.TemperatureCommand> tempSensor , ActorRef<WeatherSensor.WeatherCommand> weatherSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<MediaStation.MediaCommand> mediaStation) {
+    private  UI(ActorContext<Void> context, ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<Fridge.FridgeCommand> fridge) {
         super(context);
         // TODO: implement actor and behavior as needed
         // TODO: move UI initialization to appropriate place
@@ -36,6 +47,7 @@ public class UI extends AbstractBehavior<Void> {
         this.tempSensor = tempSensor;
         this.weatherSensor = weatherSensor;
         this.mediaStation = mediaStation;
+        this.fridge = fridge;
         new Thread(() -> { this.runCommandLine(); }).start();
 
         getContext().getLog().info("UI started");
@@ -83,6 +95,38 @@ public class UI extends AbstractBehavior<Void> {
                     this.mediaStation.tell(new MediaStation.playMovie());
                 } else if (command[1].equalsIgnoreCase("stop")){
                     this.mediaStation.tell(new MediaStation.stopMovie());
+                }
+            }
+
+            if(command[0].equals("f")){
+                Product p = null;
+
+                if(command[1].equals("a")){
+
+                    if(command[2].equals("a")){
+                        p = new Butter();
+                    }
+                    if(command[2].equals("b")){
+                        p = new Milk();
+                    }
+                    if(command[2].equals("c")){
+                        p = new Banana();
+                    }
+                    this.fridge.tell(new Fridge.AddProduct(p));
+                }
+                if(command[1].equals("c")){
+
+                    if(command[2].equals("a")){
+                        p = new Butter();
+                    }
+                    if(command[2].equals("b")){
+                        p = new Milk();
+                    }
+                    if(command[2].equals("c")){
+                        p = new Banana();
+                    }
+                    this.fridge.tell(new Fridge.ConsumeProduct(p));
+
                 }
             }
 
