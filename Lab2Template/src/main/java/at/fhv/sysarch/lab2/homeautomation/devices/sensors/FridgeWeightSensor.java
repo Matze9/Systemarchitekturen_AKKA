@@ -7,51 +7,36 @@ import akka.actor.typed.javadsl.*;
 import at.fhv.sysarch.lab2.homeautomation.devices.Fridge;
 import at.fhv.sysarch.lab2.homeautomation.modelClasses.Product;
 import at.fhv.sysarch.lab2.homeautomation.modelClasses.Stock;
+import at.fhv.sysarch.lab2.homeautomation.processors.OrderProcessor;
 
 import java.util.List;
 
-public class FridgeWeightSensor extends AbstractBehavior<FridgeWeightSensor.FridgeWeightCommand> {
+public class FridgeWeightSensor extends AbstractBehavior<FridgeWeightSensor.ValidateWeight> {
 
-    public interface FridgeWeightCommand{}
 
-    public static Behavior<FridgeWeightCommand>create(ActorRef<FridgeWeightSensor.FridgeWeightCommand>fridgeWeightSensor, String groupId, String deviceId){
-        return Behaviors.setup(context -> new FridgeWeightSensor(context, fridgeWeightSensor, groupId, deviceId));
-    }
-
-    public static final class ValidateWeight implements FridgeWeightCommand{
+    public static class ValidateWeight{
         private List<Product> orderedProducts;
         private Stock stock;
+        public final ActorRef<OrderProcessor.OrderProcessorCommand> replyTo;
 
-        public ValidateWeight(List<Product> orderedProducts, Stock stock){
+        public ValidateWeight(List<Product> orderedProducts, Stock stock, ActorRef<OrderProcessor.OrderProcessorCommand> replyTo){
             this.orderedProducts = orderedProducts;
             this.stock = stock;
+            this.replyTo = replyTo;
         }
-
     }
 
+    public static Behavior<ValidateWeight>create(){
+        return Behaviors.setup(FridgeWeightSensor::new);
+    }
 
-    private final String groupId;
-    private final String deviceId;
-    private ActorRef<FridgeWeightSensor.FridgeWeightCommand> fridgeWeightSensor;
-
-    public FridgeWeightSensor(ActorContext<FridgeWeightCommand>context, ActorRef<FridgeWeightSensor.FridgeWeightCommand>fridgeWeightSensor, String groupId, String deviceId){
+    public FridgeWeightSensor(ActorContext<ValidateWeight> context){
         super(context);
-        this.fridgeWeightSensor = fridgeWeightSensor;
-        this.groupId = groupId;
-        this.deviceId= deviceId;
-
-        getContext().getLog().info("Weight sensor successfully started");
+        getContext().getLog().info("WEIGHT SENSOR ACTIVE.");
 
     }
 
-
-    @Override
-    public Receive<FridgeWeightCommand> createReceive() {
-        return newReceiveBuilder().onMessage(ValidateWeight.class, this::onWeightValidation).onSignal(PostStop.class, signal -> onPostStop()).build();
-    }
-
-    public Behavior<FridgeWeightSensor.FridgeWeightCommand> onWeightValidation (ValidateWeight v){
-
+    private Behavior<FridgeWeightSensor.ValidateWeight> onWeightValidation(ValidateWeight v){
         double orderedProductsWeight = 0;
         double currentWeight;
         for (Product p : v.orderedProducts){
@@ -61,19 +46,22 @@ public class FridgeWeightSensor extends AbstractBehavior<FridgeWeightSensor.Frid
         currentWeight = orderedProductsWeight + v.stock.getCurrentWeight();
 
         if(currentWeight <= v.stock.getMaxWeight()){
+            v.stock.setCurrentWeight(currentWeight);
 
-            //TODO: send ok message to fridge
-            getContext().getLog().info("Fridge weight is OK");
+
+            v.replyTo.tell(new OrderProcessor.WeightValidationResponse("OK", getContext().getSelf()));
         }else{
-            //TODO: send error message to fridge
-            getContext().getLog().info("Fridge weight is not OK");
+            v.replyTo.tell(new OrderProcessor.WeightValidationResponse("ERROR", getContext().getSelf()));
+            getContext().getLog().info("Fridge weight ERROR");
         }
 
         return this;
     }
 
-    private FridgeWeightSensor onPostStop(){
-        getContext().getLog().info("Fridge weight sensor actor {}-{} stopped", groupId, deviceId);
-        return this;
+
+
+    @Override
+    public Receive<ValidateWeight> createReceive() {
+        return newReceiveBuilder().onMessage(ValidateWeight.class, this::onWeightValidation).build();
     }
 }

@@ -13,6 +13,9 @@ import at.fhv.sysarch.lab2.homeautomation.devices.AirCondition;
 import at.fhv.sysarch.lab2.homeautomation.devices.MediaStation;
 import at.fhv.sysarch.lab2.homeautomation.devices.Fridge;
 import at.fhv.sysarch.lab2.homeautomation.devices.TemperatureSensor;
+import at.fhv.sysarch.lab2.homeautomation.devices.sensors.FridgeSpaceSensor;
+import at.fhv.sysarch.lab2.homeautomation.modelClasses.Stock;
+import at.fhv.sysarch.lab2.homeautomation.processors.OrderProcessor;
 import at.fhv.sysarch.lab2.homeautomation.devices.WeatherSensor;
 import at.fhv.sysarch.lab2.homeautomation.ui.UI;
 
@@ -30,6 +33,8 @@ public class HomeAutomationController extends AbstractBehavior<Void>{
 
     private  HomeAutomationController(ActorContext<Void> context) {
         super(context);
+        Stock stock = new Stock();
+        System.out.println("Homeautomationcontroller started!");
         // TODO: consider guardians and hierarchies. Who should create and communicate with which Actors?
 
         //TODO:Devices

@@ -13,6 +13,9 @@ import at.fhv.sysarch.lab2.homeautomation.devices.AirCondition;
 import at.fhv.sysarch.lab2.homeautomation.devices.MediaStation;
 import at.fhv.sysarch.lab2.homeautomation.devices.Fridge;
 import at.fhv.sysarch.lab2.homeautomation.devices.TemperatureSensor;
+import at.fhv.sysarch.lab2.homeautomation.devices.sensors.FridgeSpaceSensor;
+import at.fhv.sysarch.lab2.homeautomation.modelClasses.*;
+import at.fhv.sysarch.lab2.homeautomation.processors.OrderProcessor;
 import at.fhv.sysarch.lab2.homeautomation.devices.WeatherSensor;
 import at.fhv.sysarch.lab2.homeautomation.modelClasses.Banana;
 import at.fhv.sysarch.lab2.homeautomation.modelClasses.Butter;
@@ -66,7 +69,8 @@ public class UI extends AbstractBehavior<Void> {
         Scanner scanner = new Scanner(System.in);
         String[] input = null;
         String reader = "";
-
+        Stock stock= new Stock();
+//test
 
         while (!reader.equalsIgnoreCase("quit") && scanner.hasNextLine()) {
             reader = scanner.nextLine();
@@ -98,8 +102,10 @@ public class UI extends AbstractBehavior<Void> {
 
             if(command[0].equals("f")){
                 Product p = null;
+                LinkedList<Product> products = new LinkedList<>();
 
-                if(command[1].equals("a")){
+                //place order
+                if(command[1].equals("p")){
 
                     if(command[2].equals("a")){
                         p = new Butter();
@@ -110,10 +116,20 @@ public class UI extends AbstractBehavior<Void> {
                     if(command[2].equals("c")){
                         p = new Banana();
                     }
-                    this.fridge.tell(new Fridge.AddProduct(p));
-                }
-                if(command[1].equals("c")){
 
+                    products.add(p);
+                    this.fridge.tell(new Fridge.PlaceOrder(products, stock));
+
+                 //get all products the fridge contains
+                }else if (command[1].equals("g")){
+                    this.fridge.tell(new Fridge.GetProducts());
+
+                //get order history from fridge
+                }else if (command[1].equals("h")){
+                    this.fridge.tell(new Fridge.GetItemsFromOrderHistory());
+
+                //consume a certain product from fridge
+                }else if(command[1].equals("c")){
                     if(command[2].equals("a")){
                         p = new Butter();
                     }
@@ -125,8 +141,14 @@ public class UI extends AbstractBehavior<Void> {
                     }
                     this.fridge.tell(new Fridge.ConsumeProduct(p));
 
+                 //requests space left
+                }else if(command[1].equals("s")){
+                    this.fridge.tell(new Fridge.GetFridgeSpaceLeft());
                 }
+
+
             }
+
 
             // TODO: process Input
         }

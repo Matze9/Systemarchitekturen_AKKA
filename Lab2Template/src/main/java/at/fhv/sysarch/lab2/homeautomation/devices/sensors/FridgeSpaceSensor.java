@@ -9,54 +9,42 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import at.fhv.sysarch.lab2.homeautomation.modelClasses.Product;
 import at.fhv.sysarch.lab2.homeautomation.modelClasses.Stock;
+import at.fhv.sysarch.lab2.homeautomation.processors.OrderProcessor;
 
 import java.util.List;
 
-public class FridgeSpaceSensor extends AbstractBehavior<FridgeSpaceSensor.FridgeSpaceCommand> {
+public class FridgeSpaceSensor extends AbstractBehavior<FridgeSpaceSensor.ValidateSpace> {
 
 
-    public interface FridgeSpaceCommand{}
 
-    public Behavior<FridgeSpaceCommand>create(ActorRef<FridgeSpaceSensor.FridgeSpaceCommand> fridgeSpaceSensor, String groupId, String deviceId){
-        return Behaviors.setup(context -> new FridgeSpaceSensor(context, fridgeSpaceSensor, groupId, deviceId));
-    }
-
-    public static final class ValidateSpace implements FridgeSpaceCommand{
+    public static final class ValidateSpace{
         private List<Product> orderedProducts;
         private Stock stock;
+        public final ActorRef<OrderProcessor.OrderProcessorCommand> replyTo;
 
-        public ValidateSpace(List<Product> orderedProducts, Stock stock){
+        public ValidateSpace(List<Product> orderedProducts, Stock stock, ActorRef<OrderProcessor.OrderProcessorCommand> replyTo){
             this.orderedProducts = orderedProducts;
             this.stock = stock;
+            this.replyTo = replyTo;
         }
-
     }
 
 
+    public static Behavior<ValidateSpace>create(){
+        return Behaviors.setup(FridgeSpaceSensor::new);
+    }
 
-    private String groupId;
-    private String deviceId;
-    private ActorRef<FridgeSpaceSensor.FridgeSpaceCommand> fridgeSpaceSensor;
-
-    public FridgeSpaceSensor(ActorContext<FridgeSpaceCommand> context, ActorRef<FridgeSpaceSensor.FridgeSpaceCommand> fridgeSpaceSensor, String groupId, String deviceId){
+    public FridgeSpaceSensor(ActorContext<ValidateSpace> context){
         super(context);
-        this.fridgeSpaceSensor = fridgeSpaceSensor;
-        this.groupId = groupId;
-        this.deviceId = deviceId;
-
-        getContext().getLog().info("Fridge Space Sensor successfully started.");
-
+        getContext().getLog().info("SPACE SENSOR ACTIVE.");
     }
-
 
     @Override
-    public Receive<FridgeSpaceCommand> createReceive() {
-        //return newReceiveBuilder().onMessage(ValidateSpace.class, this::onSpaceValidation).onSignal(PostStop.class, signal -> onPostStop()).build();
-        return newReceiveBuilder().onMessage(ValidateSpace.class, this::onSpaceValidation).onSignal(PostStop.class, signal -> onPostStop()).build();
+    public Receive<ValidateSpace> createReceive() {
+        return newReceiveBuilder().onMessage(ValidateSpace.class, this::onSpaceValidation).build();
     }
 
-    public Behavior<FridgeSpaceSensor.FridgeSpaceCommand> onSpaceValidation(ValidateSpace v){
-
+    private Behavior<ValidateSpace> onSpaceValidation(ValidateSpace v){
         int orderedProductsSpace = 0;
         int currentSpace;
         for (Product p : v.orderedProducts){
@@ -66,20 +54,16 @@ public class FridgeSpaceSensor extends AbstractBehavior<FridgeSpaceSensor.Fridge
         currentSpace = orderedProductsSpace + v.stock.getCurrentSpace();
 
         if(currentSpace <= v.stock.getMaxSpace()){
-
-            //TODO: send ok message to fridge
-            getContext().getLog().info("Fridge space is OK");
+            v.stock.setCurrentSpace(currentSpace);
+            v.replyTo.tell(new OrderProcessor.SpaceValidationResponse("OK", getContext().getSelf()));
         }else{
-            //TODO: send error message to fridge
-            getContext().getLog().info("Fridge space is not OK");
+            v.replyTo.tell(new OrderProcessor.SpaceValidationResponse("ERROR", getContext().getSelf()));
+            getContext().getLog().info("Fridge space ERROR");
         }
 
         return this;
     }
 
-    private FridgeSpaceSensor onPostStop(){
-        getContext().getLog().info("Fridge sapce sensor actor {}-{} stopped", groupId, deviceId);
-        return this;
-    }
+
 
 }
