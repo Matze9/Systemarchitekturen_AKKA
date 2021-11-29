@@ -44,6 +44,7 @@ public class UI extends AbstractBehavior<Void> {
         super(context);
         // TODO: implement actor and behavior as needed
         // TODO: move UI initialization to appropriate place
+
         this.airCondition = airCondition;
         this.tempSensor = tempSensor;
         this.weatherSensor = weatherSensor;

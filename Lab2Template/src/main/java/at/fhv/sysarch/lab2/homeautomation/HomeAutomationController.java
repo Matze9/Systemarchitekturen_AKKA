@@ -39,7 +39,7 @@ public class HomeAutomationController extends AbstractBehavior<Void>{
 
         //TODO:Devices
         this.airCondition = getContext().spawn(AirCondition.create("2", "1"), "AirCondition");
-        this.fridge = getContext().spawn(Fridge.create(this.fridge, "3", "1"), "Fridge");
+        this.fridge = getContext().spawn(Fridge.create(stock,"3", "1"), "Fridge");
 
 
         //TODO:BLACKBOARD
