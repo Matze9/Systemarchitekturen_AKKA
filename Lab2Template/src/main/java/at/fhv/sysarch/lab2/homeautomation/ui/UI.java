@@ -60,7 +60,7 @@ public class UI extends AbstractBehavior<Void> {
         String[] input = null;
         String reader = "";
         Stock stock= new Stock();
-
+//test
 
         while (!reader.equalsIgnoreCase("quit") && scanner.hasNextLine()) {
             reader = scanner.nextLine();
