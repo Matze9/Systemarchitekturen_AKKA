@@ -16,7 +16,7 @@ public class Milk extends Product {
     public Milk(){
         this.weight = 1.0;
         this.price = 1.29;
-        this.storagePoints = 3;
+        this.storagePoints = 50;
         this.productName = "Milk";
         addedOn = LocalDate.now();
     }

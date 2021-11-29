@@ -166,7 +166,6 @@ public class OrderProcessor extends AbstractBehavior<OrderProcessor.OrderProcess
 
     private Behavior<OrderProcessorCommand>validateSensors(){
         if(weightSensorResponse.equals("OK") && spaceSensorResponse.equals("OK")){
-            //TODO: publish order to orderHistory and add them to fridge + create Receipt
             getContext().getLog().info("[ORDERPROCESSOR] both sensors OK");
             fridge.tell(new Fridge.AddItems(orderItems, getContext().getSelf()));
             return addItemsToFridgeIfSensorResponseIsOk();
