@@ -32,14 +32,12 @@ public class UI extends AbstractBehavior<Void> {
     private  ActorRef<MediaStation.MediaCommand> mediaStation;
     private ActorRef<Fridge.FridgeCommand> fridge;
 
-    public static Behavior<Void> create(ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<WeatherSensor.WeatherCommand> weatherSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<MediaStation.MediaCommand> mediaStation) {
-        return Behaviors.setup(context -> new UI(context, tempSensor, weatherSensor, airCondition, mediaStation));
-    public static Behavior<Void> create(ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<Fridge.FridgeCommand> fridge) {
-        return Behaviors.setup(context -> new UI(context, tempSensor, airCondition, fridge));
+    public static Behavior<Void> create(ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<WeatherSensor.WeatherCommand> weatherSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<MediaStation.MediaCommand> mediaStation, ActorRef<Fridge.FridgeCommand> fridge) {
+        return Behaviors.setup(context -> new UI(context, tempSensor, weatherSensor, airCondition, mediaStation, fridge));
+
     }
 
-    private  UI(ActorContext<Void> context, ActorRef<TemperatureSensor.TemperatureCommand> tempSensor , ActorRef<WeatherSensor.WeatherCommand> weatherSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<MediaStation.MediaCommand> mediaStation) {
-    private  UI(ActorContext<Void> context, ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<Fridge.FridgeCommand> fridge) {
+    private  UI(ActorContext<Void> context, ActorRef<TemperatureSensor.TemperatureCommand> tempSensor , ActorRef<WeatherSensor.WeatherCommand> weatherSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<MediaStation.MediaCommand> mediaStation, ActorRef<Fridge.FridgeCommand> fridge) {
         super(context);
         // TODO: implement actor and behavior as needed
         // TODO: move UI initialization to appropriate place

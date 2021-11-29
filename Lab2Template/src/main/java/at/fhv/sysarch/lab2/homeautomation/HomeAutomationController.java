@@ -34,6 +34,7 @@ public class HomeAutomationController extends AbstractBehavior<Void>{
 
         //TODO:Devices
         this.airCondition = getContext().spawn(AirCondition.create("2", "1"), "AirCondition");
+        this.fridge = getContext().spawn(Fridge.create(this.fridge, "3", "1"), "Fridge");
 
 
         //TODO:BLACKBOARD
@@ -44,11 +45,9 @@ public class HomeAutomationController extends AbstractBehavior<Void>{
         this.weatherSensor = getContext().spawn(WeatherSensor.create(this.blackBoard), "weatherSensor");
         this.mediaStation = getContext().spawn(MediaStation.create(this.blackBoard), "mediaStation");
 
-        ActorRef<Void> ui = getContext().spawn(UI.create(this.tempSensor, this.weatherSensor, this.airCondition, this.mediaStation), "UI");
+        //TODO: UI
+        ActorRef<Void> ui = getContext().spawn(UI.create(this.tempSensor, this.weatherSensor, this.airCondition, this.mediaStation, this.fridge), "UI");
 
-        this.tempSensor = getContext().spawn(TemperatureSensor.create(this.airCondition, "1", "1"), "temperatureSensor");
-        this.fridge = getContext().spawn(Fridge.create(this.fridge, "3", "1"), "Fridge");
-        ActorRef<Void> ui = getContext().spawn(UI.create(this.tempSensor, this.airCondition, this.fridge), "UI");
         System.out.println("Homeautomationcontroller started!");
         getContext().getLog().info("HomeAutomation Application started");
     }
