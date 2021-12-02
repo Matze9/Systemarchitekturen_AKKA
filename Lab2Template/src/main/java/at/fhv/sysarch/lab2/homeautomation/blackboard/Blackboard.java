@@ -7,6 +7,7 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import at.fhv.sysarch.lab2.homeautomation.devices.AirCondition;
+import at.fhv.sysarch.lab2.homeautomation.devices.Blinds;
 import at.fhv.sysarch.lab2.homeautomation.devices.WeatherSensor;
 
 import java.util.Optional;
@@ -47,18 +48,20 @@ public class Blackboard extends AbstractBehavior<Blackboard.BlackBoardCommand> {
     ////////////BLACKBOARD/////////////////////
 
     private ActorRef<AirCondition.AirConditionCommand> airCondition;
+    private ActorRef<Blinds.BlindsCommand> blinds;
     private Double temperature = 0.0;
-    private WeatherSensor.Weather weather;
+    private WeatherSensor.Weather weather = WeatherSensor.Weather.SUNNY;
     private boolean movieIsPlaing = false;
 
-    public static Behavior<Blackboard.BlackBoardCommand> create(ActorRef<AirCondition.AirConditionCommand> airCondition){
-        return Behaviors.setup(context -> new Blackboard(context, airCondition));
+    public static Behavior<Blackboard.BlackBoardCommand> create(ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<Blinds.BlindsCommand> blinds){
+        return Behaviors.setup(context -> new Blackboard(context, airCondition, blinds));
     }
 
-    private Blackboard(ActorContext<BlackBoardCommand> context, ActorRef<AirCondition.AirConditionCommand> airCondition) {
+    private Blackboard(ActorContext<BlackBoardCommand> context, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<Blinds.BlindsCommand> blinds) {
         super(context);
         this.airCondition = airCondition;
-        getContext().getLog().info("Blackboard Active");
+        this.blinds = blinds;
+        getContext().getLog().info("Blackboard: Active");
     }
 
 
@@ -74,25 +77,29 @@ public class Blackboard extends AbstractBehavior<Blackboard.BlackBoardCommand> {
 
     private Behavior<BlackBoardCommand> onStartStopMovie (startStopMovie command){
         movieIsPlaing = command.isPlaying;
-        getContext().getLog().info("Movie is playing = " + movieIsPlaing);
+        getContext().getLog().info("Blackboard: Updated movie is playing to " + this.movieIsPlaing);
+        getContext().getLog().info("Blackboard: Current weather = " + this.weather.toString());
+        this.blinds.tell(new Blinds.HandleStateChange(this.weather, command.isPlaying));
         return this;
     }
 
     private Behavior<BlackBoardCommand> onUpdateTemperature(updateTemperature command){
         temperature = command.temperature;
-        getContext().getLog().info("Updated temperature on Blackboard to " + temperature);
+        getContext().getLog().info("Blackboard: updated Temperatur to " + temperature);
         this.airCondition.tell(new AirCondition.EnrichedTemperature(Optional.ofNullable(command.temperature), Optional.of("Celsius")));
         return this;
     }
 
     private Behavior<BlackBoardCommand> onUpdateWeather (updateWeather command){
         this.weather = command.weather;
-        getContext().getLog().info("Updated weather on Blackboard to " + command.weather.toString());
+        getContext().getLog().info("Blackboard: updated Weather to " + command.weather.toString());
+        getContext().getLog().info("Blackboard: Movie is Playing = " + this.movieIsPlaing);
+        this.blinds.tell(new Blinds.HandleStateChange(this.weather, this.movieIsPlaing));
         return this;
     }
 
     private Behavior<BlackBoardCommand> onShowStatus() {
-        System.out.println("Current Temperature: " + temperature);
+        System.out.println("Blackboard: current temperature " + temperature);
         return this;
     }
 

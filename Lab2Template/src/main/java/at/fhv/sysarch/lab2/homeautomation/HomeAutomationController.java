@@ -9,14 +9,10 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import at.fhv.sysarch.lab2.homeautomation.blackboard.Blackboard;
-import at.fhv.sysarch.lab2.homeautomation.devices.AirCondition;
-import at.fhv.sysarch.lab2.homeautomation.devices.MediaStation;
-import at.fhv.sysarch.lab2.homeautomation.devices.Fridge;
-import at.fhv.sysarch.lab2.homeautomation.devices.TemperatureSensor;
+import at.fhv.sysarch.lab2.homeautomation.devices.*;
 import at.fhv.sysarch.lab2.homeautomation.devices.sensors.FridgeSpaceSensor;
 import at.fhv.sysarch.lab2.homeautomation.modelClasses.Stock;
 import at.fhv.sysarch.lab2.homeautomation.processors.OrderProcessor;
-import at.fhv.sysarch.lab2.homeautomation.devices.WeatherSensor;
 import at.fhv.sysarch.lab2.homeautomation.ui.UI;
 
 public class HomeAutomationController extends AbstractBehavior<Void>{
@@ -26,6 +22,7 @@ public class HomeAutomationController extends AbstractBehavior<Void>{
     private  ActorRef<MediaStation.MediaCommand> mediaStation;
     private ActorRef<Blackboard.BlackBoardCommand> blackBoard;
     private ActorRef<Fridge.FridgeCommand> fridge;
+    private ActorRef<Blinds.BlindsCommand> blinds;
 
     public static Behavior<Void> create() {
         return Behaviors.setup(HomeAutomationController::new);
@@ -40,10 +37,11 @@ public class HomeAutomationController extends AbstractBehavior<Void>{
         //TODO:Devices
         this.airCondition = getContext().spawn(AirCondition.create("2", "1"), "AirCondition");
         this.fridge = getContext().spawn(Fridge.create(stock,"3", "1"), "Fridge");
+        this.blinds = getContext().spawn(Blinds.create(), "Blinds");
 
 
         //TODO:BLACKBOARD
-        this.blackBoard = getContext().spawn(Blackboard.create(this.airCondition), "Blackboard");
+        this.blackBoard = getContext().spawn(Blackboard.create(this.airCondition, this.blinds), "Blackboard");
 
         //TODO:SENSORS
         this.tempSensor = getContext().spawn(TemperatureSensor.create(this.airCondition, this.blackBoard, "1", "1"), "temperatureSensor");

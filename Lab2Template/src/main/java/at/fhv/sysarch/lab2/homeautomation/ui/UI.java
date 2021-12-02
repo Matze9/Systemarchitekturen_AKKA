@@ -78,7 +78,6 @@ public class UI extends AbstractBehavior<Void> {
             // TODO: change input handling
             String[] command = reader.split(" ");
             if(command[0].equals("t")) {
-                System.out.println("Temperature Command");
                 this.tempSensor.tell(new TemperatureSensor.ReadTemperature(Optional.of(Double.valueOf(command[1]))));
             }
             if(command[0].equals("a")) {
