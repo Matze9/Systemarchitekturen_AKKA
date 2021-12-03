@@ -24,7 +24,7 @@ public class HomeAutomationController extends AbstractBehavior<Void>{
     private  ActorRef<MediaStation.MediaCommand> mediaStation;
     private ActorRef<Blackboard.BlackBoardCommand> blackBoard;
     private ActorRef<Fridge.FridgeCommand> fridge;
-    private ActorRef<Blinds.BlindsCommand> blinds;
+    private LinkedList<ActorRef<Blinds.BlindsCommand>> blinds = new LinkedList<>();
 
     public static Behavior<Void> create() {
         return Behaviors.setup(HomeAutomationController::new);
@@ -36,14 +36,12 @@ public class HomeAutomationController extends AbstractBehavior<Void>{
         System.out.println("Homeautomationcontroller started!");
         // TODO: consider guardians and hierarchies. Who should create and communicate with which Actors?
 
-        //TODO:Devices
-
+        //TODO:Initialize Fridge
         this.fridge = getContext().spawn(Fridge.create(stock,"3", "1"), "Fridge");
-        this.blinds = getContext().spawn(Blinds.create(), "Blinds");
 
 
         //TODO:Initialize Blackboard
-        this.blackBoard = getContext().spawn(Blackboard.create(this.blinds), "Blackboard");
+        this.blackBoard = getContext().spawn(Blackboard.create(), "Blackboard");
 
             //Add Airconditions to Blackboard
         this.airConditions.add(getContext().spawn(AirCondition.create("2", "1", this.blackBoard), "AirCondition1"));
@@ -52,6 +50,9 @@ public class HomeAutomationController extends AbstractBehavior<Void>{
         this.blackBoard.tell(new Blackboard.addAirconditionsList(airConditions));
 
             //Add Blinds to Blackboard
+        this.blinds.add(getContext().spawn(Blinds.create("1", "1", this.blackBoard), "Blinds1"));
+        this.blinds.add(getContext().spawn(Blinds.create("1", "2", this.blackBoard), "Blinds2"));
+        this.blackBoard.tell(new Blackboard.addBlindsList(this.blinds));
 
 
         //TODO:SENSORS

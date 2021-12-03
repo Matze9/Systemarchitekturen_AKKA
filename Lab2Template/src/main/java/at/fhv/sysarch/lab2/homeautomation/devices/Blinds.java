@@ -32,13 +32,19 @@ public class Blinds extends AbstractBehavior<Blinds.BlindsCommand> {
     ////////BLINDS///////////
 
     private BlindState blindState = BlindState.CLOSED;
+    private final String groupId;
+    private final String deviceId;
+    private final ActorRef<Blackboard.BlackBoardCommand> blackboard;
 
-    public static Behavior<Blinds.BlindsCommand> create(){
-        return Behaviors.setup(context -> new Blinds(context));
+    public static Behavior<Blinds.BlindsCommand> create(String groupId, String deviceId, ActorRef<Blackboard.BlackBoardCommand> blackboard){
+        return Behaviors.setup(context -> new Blinds(context, groupId, deviceId, blackboard));
     }
 
-    private Blinds (ActorContext<Blinds.BlindsCommand> context){
+    private Blinds (ActorContext<Blinds.BlindsCommand> context, String groupId, String deviceId, ActorRef<Blackboard.BlackBoardCommand> blackboard){
         super (context);
+        this.groupId = groupId;
+        this.deviceId = deviceId;
+        this.blackboard = blackboard;
     }
 
     @Override
@@ -51,11 +57,13 @@ public class Blinds extends AbstractBehavior<Blinds.BlindsCommand> {
     private  Behavior<BlindsCommand> onHandleStateChange(Blinds.HandleStateChange command) {
         if (!command.movieIsPlaying && command.weather == WeatherSensor.Weather.CLOUDY){
             this.blindState = BlindState.OPEN;
-            getContext().getLog().info("Blinds: Blinds are "  +this.blindState.toString());
+            getContext().getLog().info("Blinds: Blinds Nr. "+ this.deviceId + " are "  +this.blindState.toString());
+
         } else if (command.weather == WeatherSensor.Weather.SUNNY || command.movieIsPlaying) {
             this.blindState = BlindState.CLOSED;
-            getContext().getLog().info("Blinds: Blinds are "  +this.blindState.toString());
+            getContext().getLog().info("Blinds: Blinds Nr. "+ this.deviceId  +" are "  +this.blindState.toString());
         }
+        this.blackboard.tell(new Blackboard.changeBlindState(this.deviceId, this.blindState));
 
         return this;
     }

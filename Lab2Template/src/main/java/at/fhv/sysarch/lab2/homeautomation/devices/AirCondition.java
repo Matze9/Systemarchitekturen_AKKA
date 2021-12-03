@@ -60,7 +60,7 @@ public class AirCondition extends AbstractBehavior<AirCondition.AirConditionComm
         this.groupId = groupId;
         this.deviceId = deviceId;
         this.blackboard = blackboard;
-        getContext().getLog().info("AirCondition started");
+        getContext().getLog().info("AirCondition Nr. "+ this.deviceId + " started");
     }
 
     public static Behavior<AirConditionCommand> create(String groupId, String deviceId, ActorRef<Blackboard.BlackBoardCommand> blackboard) {

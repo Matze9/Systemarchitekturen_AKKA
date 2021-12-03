@@ -19,9 +19,6 @@ public class Blackboard extends AbstractBehavior<Blackboard.BlackBoardCommand> {
     //////////////COMMANDS//////////////////
     public interface BlackBoardCommand {}
 
-    public enum showStatus implements BlackBoardCommand {
-        INSTANCE
-    }
 
     public static class updateTemperature implements BlackBoardCommand {
         public final Double temperature;
@@ -47,14 +44,6 @@ public class Blackboard extends AbstractBehavior<Blackboard.BlackBoardCommand> {
         }
     }
 
-    public static class changeBlindState implements BlackBoardCommand {
-        public final Blinds.BlindState blindState;
-
-        public changeBlindState (Blinds.BlindState blindState){
-            this.blindState = blindState;
-        }
-    }
-
     public static class setAirconditionState implements BlackBoardCommand {
         public final String airconditionID;
         public final boolean airConditionIsActive;
@@ -73,6 +62,24 @@ public class Blackboard extends AbstractBehavior<Blackboard.BlackBoardCommand> {
         }
     }
 
+    public static class addBlindsList implements BlackBoardCommand {
+        public final LinkedList<ActorRef<Blinds.BlindsCommand>> blindsList;
+
+        public addBlindsList ( LinkedList<ActorRef<Blinds.BlindsCommand>> blindsList){
+            this.blindsList = blindsList;
+        }
+    }
+
+    public static class changeBlindState implements BlackBoardCommand {
+        public final String blindsId;
+        public final Blinds.BlindState blindState;
+
+        public changeBlindState (String blindsId, Blinds.BlindState blindState){
+            this.blindState = blindState;
+            this.blindsId = blindsId;
+        }
+    }
+
     ////////////TODO:BLACKBOARD/////////////////////
 
     private ActorRef<AirCondition.AirConditionCommand> airCondition;
@@ -82,21 +89,20 @@ public class Blackboard extends AbstractBehavior<Blackboard.BlackBoardCommand> {
     private HashMap<String, Boolean> airConditionStates = new HashMap<>();
 
     private LinkedList<ActorRef<Blinds.BlindsCommand>> blindsList = new LinkedList<>();
+    private HashMap<String, Blinds.BlindState> blindStates = new HashMap<>();
 
     private Double temperature = 0.0;
     private WeatherSensor.Weather weather = WeatherSensor.Weather.SUNNY;
     private boolean movieIsPlaing = false;
-    private Blinds.BlindState blindState = Blinds.BlindState.CLOSED;
-    private boolean airConditionIsActive = false;
 
 
-    public static Behavior<Blackboard.BlackBoardCommand> create(ActorRef<Blinds.BlindsCommand> blinds){
-        return Behaviors.setup(context -> new Blackboard(context, blinds));
+
+    public static Behavior<Blackboard.BlackBoardCommand> create(){
+        return Behaviors.setup(context -> new Blackboard(context));
     }
 
-    private Blackboard(ActorContext<BlackBoardCommand> context, ActorRef<Blinds.BlindsCommand> blinds) {
+    private Blackboard(ActorContext<BlackBoardCommand> context) {
         super(context);
-        this.blinds = blinds;
         getContext().getLog().info("Blackboard: Active");
     }
 
@@ -104,19 +110,25 @@ public class Blackboard extends AbstractBehavior<Blackboard.BlackBoardCommand> {
     @Override
     public Receive<BlackBoardCommand> createReceive() {
         return newReceiveBuilder()
-                .onMessageEquals(showStatus.INSTANCE, this::onShowStatus)
                 .onMessage(updateTemperature.class, this::onUpdateTemperature)
                 .onMessage(updateWeather.class, this::onUpdateWeather)
                 .onMessage(startStopMovie.class, this::onStartStopMovie)
                 .onMessage(changeBlindState.class, this::onchangeBlindState)
                 .onMessage(setAirconditionState.class, this::onsetAirconditionState)
                 .onMessage(addAirconditionsList.class, this::onaddAirConditionsList)
+                .onMessage(addBlindsList.class, this::onaddBlindsList)
                 .build();
     }
 
     private Behavior<BlackBoardCommand> onaddAirConditionsList (addAirconditionsList command){
         this.airConditionsList = command.airConditions;
-        getContext().getLog().info("Blackboard: Airconditions registred");
+        getContext().getLog().info("Blackboard: "+ command.airConditions.size() + " Airconditions registred");
+        return this;
+    }
+
+    private Behavior<BlackBoardCommand> onaddBlindsList (addBlindsList command){
+        this.blindsList = command.blindsList;
+        getContext().getLog().info("Blackboard: "+ command.blindsList.size() +" Blinds registred");
         return this;
     }
 
@@ -124,7 +136,12 @@ public class Blackboard extends AbstractBehavior<Blackboard.BlackBoardCommand> {
         movieIsPlaing = command.isPlaying;
         getContext().getLog().info("Blackboard: Updated movie is playing to " + this.movieIsPlaing);
         getContext().getLog().info("Blackboard: Current weather = " + this.weather.toString());
-        this.blinds.tell(new Blinds.HandleStateChange(this.weather, command.isPlaying));
+
+        for (ActorRef<Blinds.BlindsCommand>  blinds : this.blindsList){
+            blinds.tell(new Blinds.HandleStateChange(this.weather, this.movieIsPlaing));
+        }
+
+       // this.blinds.tell(new Blinds.HandleStateChange(this.weather, command.isPlaying));
         return this;
     }
 
@@ -142,13 +159,18 @@ public class Blackboard extends AbstractBehavior<Blackboard.BlackBoardCommand> {
         this.weather = command.weather;
         getContext().getLog().info("Blackboard: updated Weather to " + command.weather.toString());
         getContext().getLog().info("Blackboard: Movie is Playing = " + this.movieIsPlaing);
-        this.blinds.tell(new Blinds.HandleStateChange(this.weather, this.movieIsPlaing));
+
+        for (ActorRef<Blinds.BlindsCommand>  blinds : this.blindsList){
+            blinds.tell(new Blinds.HandleStateChange(this.weather, this.movieIsPlaing));
+        }
+      //  this.blinds.tell(new Blinds.HandleStateChange(this.weather, this.movieIsPlaing));
         return this;
     }
 
     private Behavior<BlackBoardCommand> onchangeBlindState (changeBlindState command){
-        this.blindState = command.blindState;
-        getContext().getLog().info("Blackboard: updated Blindstate to " + command.blindState);
+//        this.blindState = command.blindState;
+        this.blindStates.put(command.blindsId, command.blindState);
+        getContext().getLog().info("Blackboard: updated Blindstate of Blind Nr. " + command.blindsId +" to " + command.blindState);
         return this;
     }
 
@@ -158,10 +180,6 @@ public class Blackboard extends AbstractBehavior<Blackboard.BlackBoardCommand> {
         return this;
     }
 
-    private Behavior<BlackBoardCommand> onShowStatus() {
-        System.out.println("Blackboard: current temperature " + temperature);
-        return this;
-    }
 
 
 }
