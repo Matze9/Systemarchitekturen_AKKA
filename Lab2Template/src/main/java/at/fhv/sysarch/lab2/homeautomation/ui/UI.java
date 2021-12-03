@@ -30,22 +30,22 @@ import java.util.Scanner;
 public class UI extends AbstractBehavior<Void> {
 
     private ActorRef<TemperatureSensor.TemperatureCommand> tempSensor;
-    private ActorRef<AirCondition.AirConditionCommand> airCondition;
+    private LinkedList<ActorRef<AirCondition.AirConditionCommand>> airConditions;
     private ActorRef<WeatherSensor.WeatherCommand> weatherSensor;
     private  ActorRef<MediaStation.MediaCommand> mediaStation;
     private ActorRef<Fridge.FridgeCommand> fridge;
 
-    public static Behavior<Void> create(ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<WeatherSensor.WeatherCommand> weatherSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<MediaStation.MediaCommand> mediaStation, ActorRef<Fridge.FridgeCommand> fridge) {
-        return Behaviors.setup(context -> new UI(context, tempSensor, weatherSensor, airCondition, mediaStation, fridge));
+    public static Behavior<Void> create(ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<WeatherSensor.WeatherCommand> weatherSensor, LinkedList<ActorRef<AirCondition.AirConditionCommand>> airConditions, ActorRef<MediaStation.MediaCommand> mediaStation, ActorRef<Fridge.FridgeCommand> fridge) {
+        return Behaviors.setup(context -> new UI(context, tempSensor, weatherSensor, airConditions, mediaStation, fridge));
 
     }
 
-    private  UI(ActorContext<Void> context, ActorRef<TemperatureSensor.TemperatureCommand> tempSensor , ActorRef<WeatherSensor.WeatherCommand> weatherSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<MediaStation.MediaCommand> mediaStation, ActorRef<Fridge.FridgeCommand> fridge) {
+    private  UI(ActorContext<Void> context, ActorRef<TemperatureSensor.TemperatureCommand> tempSensor , ActorRef<WeatherSensor.WeatherCommand> weatherSensor, LinkedList<ActorRef<AirCondition.AirConditionCommand>> airConditions, ActorRef<MediaStation.MediaCommand> mediaStation, ActorRef<Fridge.FridgeCommand> fridge) {
         super(context);
         // TODO: implement actor and behavior as needed
         // TODO: move UI initialization to appropriate place
 
-        this.airCondition = airCondition;
+        this.airConditions = airConditions;
         this.tempSensor = tempSensor;
         this.weatherSensor = weatherSensor;
         this.mediaStation = mediaStation;
@@ -77,11 +77,17 @@ public class UI extends AbstractBehavior<Void> {
             reader = scanner.nextLine();
             // TODO: change input handling
             String[] command = reader.split(" ");
+
+            //Change Temperature
             if(command[0].equals("t")) {
                 this.tempSensor.tell(new TemperatureSensor.ReadTemperature(Optional.of(Double.valueOf(command[1]))));
             }
+
             if(command[0].equals("a")) {
-                this.airCondition.tell(new AirCondition.PowerAirCondition(Optional.of(Boolean.valueOf(command[1]))));
+                for (ActorRef<AirCondition.AirConditionCommand> aircon : airConditions){
+                    aircon.tell(new AirCondition.PowerAirCondition(Optional.of(Boolean.valueOf(command[1])), command[2]));
+                }
+
             }
             if(command[0].equals("w")){
                 WeatherSensor.Weather newWeather;
@@ -148,7 +154,6 @@ public class UI extends AbstractBehavior<Void> {
 
 
             }
-
 
             // TODO: process Input
         }

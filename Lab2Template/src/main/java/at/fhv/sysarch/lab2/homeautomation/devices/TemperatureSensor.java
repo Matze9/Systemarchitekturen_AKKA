@@ -13,6 +13,8 @@ import java.util.Optional;
 
 public class TemperatureSensor extends AbstractBehavior<TemperatureSensor.TemperatureCommand> {
 
+    ////////////TODO:COMMANDS///////////////////
+
     public interface TemperatureCommand {}
 
     public static final class ReadTemperature implements TemperatureCommand {
@@ -23,18 +25,20 @@ public class TemperatureSensor extends AbstractBehavior<TemperatureSensor.Temper
         }
     }
 
-    public static Behavior<TemperatureCommand> create(ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<Blackboard.BlackBoardCommand> blackBoard, String groupId, String deviceId) {
-        return Behaviors.setup(context -> new TemperatureSensor(context, airCondition, blackBoard, groupId, deviceId));
-    }
+    ////////////TODO:TEMPERATURE SENSOR/////////////
+
 
     private final String groupId;
     private final String deviceId;
-    private ActorRef<AirCondition.AirConditionCommand> airCondition;
+
     private ActorRef<Blackboard.BlackBoardCommand> blackBoard;
 
-    public TemperatureSensor(ActorContext<TemperatureCommand> context, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<Blackboard.BlackBoardCommand> blackBoard, String groupId, String deviceId) {
+    public static Behavior<TemperatureCommand> create( ActorRef<Blackboard.BlackBoardCommand> blackBoard, String groupId, String deviceId) {
+        return Behaviors.setup(context -> new TemperatureSensor(context, blackBoard, groupId, deviceId));
+    }
+
+    public TemperatureSensor(ActorContext<TemperatureCommand> context, ActorRef<Blackboard.BlackBoardCommand> blackBoard, String groupId, String deviceId) {
         super(context);
-        this.airCondition = airCondition;
         this.blackBoard = blackBoard;
         this.groupId = groupId;
         this.deviceId = deviceId;
