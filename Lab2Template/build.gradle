@@ -29,3 +29,10 @@ run {
 test {
     useJUnitPlatform()
 }
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'at.fhv.sysarch.lab2.HomeAutomationSystem'
+    }
+
+}

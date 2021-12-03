@@ -6,7 +6,7 @@ import at.fhv.sysarch.lab2.homeautomation.HomeAutomationController;
 public class HomeAutomationSystem {
 
     public static void main(String[] args) {
-        System.out.println("START Appliction");
+        System.out.println("START Application");
         ActorSystem<Void> home = ActorSystem.create(HomeAutomationController.create(), "HomeAutomation");
     }
 
