@@ -42,8 +42,6 @@ public class UI extends AbstractBehavior<Void> {
 
     private  UI(ActorContext<Void> context, ActorRef<TemperatureSensor.TemperatureCommand> tempSensor , ActorRef<WeatherSensor.WeatherCommand> weatherSensor, LinkedList<ActorRef<AirCondition.AirConditionCommand>> airConditions, ActorRef<MediaStation.MediaCommand> mediaStation, ActorRef<Fridge.FridgeCommand> fridge) {
         super(context);
-        // TODO: implement actor and behavior as needed
-        // TODO: move UI initialization to appropriate place
 
         this.airConditions = airConditions;
         this.tempSensor = tempSensor;
@@ -66,7 +64,7 @@ public class UI extends AbstractBehavior<Void> {
     }
 
     public void runCommandLine() {
-        // TODO: Create Actor for UI Input-Handling
+
         Scanner scanner = new Scanner(System.in);
         String[] input = null;
         String reader = "";
