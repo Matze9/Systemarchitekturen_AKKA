@@ -121,8 +121,8 @@ public class OrderProcessor extends AbstractBehavior<OrderProcessor.OrderProcess
         this.orderItems = orderItems;
         this.fridge = fridge;
         //this.orderProcessorCommand = orderProcessorCommand;
-        this.weightSensorResponse = "ERROR";
-        this.spaceSensorResponse = "ERROR";
+        this.weightSensorResponse = "DEFAULT";
+        this.spaceSensorResponse = "DEFAULT";
         this.fridgeItemsAddedResponse = "ERROR";
 
         getContext().getLog().info("[ORDERPROCESSOR] activated");
@@ -170,9 +170,10 @@ public class OrderProcessor extends AbstractBehavior<OrderProcessor.OrderProcess
             fridge.tell(new Fridge.AddItems(orderItems, getContext().getSelf()));
             return addItemsToFridgeIfSensorResponseIsOk();
             //return Behaviors.stopped();
+        }else if (weightSensorResponse.equals("ERROR") || spaceSensorResponse.equals("ERROR")) {
+            getContext().getLog().info("[ORDERPROCESSOR] could not place order due to lack of space or weight");
+            return Behaviors.stopped();
         }else{
-
-            //TODO: proper error handling and error msg for client
             return this;
         }
     }

@@ -79,6 +79,14 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
         }
     }
 
+    //returns available Weight from fridge
+    public static final class GetFridgeWeightLeft implements FridgeCommand{
+        private Stock stock1;
+        public GetFridgeWeightLeft(){
+            this.stock1 = stock;
+        }
+    }
+
 
 
 
@@ -193,6 +201,15 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
         return this;
     }
 
+    private Behavior<FridgeCommand>onWeightLeftRequest(GetFridgeWeightLeft g){
+        double weightLeft = g.stock1.getMaxWeight() - g.stock1.getCurrentWeight();
+        getContext().getLog().info("[FRIDGE] " + weightLeft + "/" + g.stock1.getMaxWeight() + " weight left");
+
+        return this;
+    }
+
+
+
 
 
     @Override
@@ -204,6 +221,7 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
                 .onMessage(GetProducts.class, this::onGetProducts)
                 .onMessage(GetItemsFromOrderHistory.class, this::onFridgeOrderHistoryRequest)
                 .onMessage(GetFridgeSpaceLeft.class, this::onSpaceLeftRequest)
+                .onMessage(GetFridgeWeightLeft.class, this::onWeightLeftRequest)
                 .build();
     }
 

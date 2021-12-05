@@ -148,6 +148,8 @@ public class UI extends AbstractBehavior<Void> {
                  //requests space left
                 }else if(command[1].equals("s")){
                     this.fridge.tell(new Fridge.GetFridgeSpaceLeft());
+                }else if(command[1].equals("w")){
+                    this.fridge.tell(new Fridge.GetFridgeWeightLeft());
                 }
 
 
